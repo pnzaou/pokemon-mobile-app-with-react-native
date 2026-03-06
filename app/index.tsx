@@ -1,15 +1,18 @@
 // Import des composants UI personnalisés
 import Card from "@/components/Card";
 import PokemonCard from "@/components/pokemon/PokemonCard";
+import Row from "@/components/Row";
+import SearchBar from "@/components/SearchBar";
 import ThemedText from "@/components/ThemedText";
 import { getPokemeonId } from "@/functions/pokemon";
 import { useInfiniteFetchQuery } from "@/hooks/useFetchQuery";
 import { useThemeColors } from "@/hooks/useThemeColors";
+import { useState } from "react";
 import { View, StyleSheet, Image, FlatList, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-
 const index = () => {
+  const [search, setSearch] = useState('')
   const colors = useThemeColors();
 
   // Hook qui récupère les Pokémon avec React Query et gère la pagination
@@ -18,13 +21,14 @@ const index = () => {
   // Les données retournées sont paginées (data.pages)
   // On fusionne toutes les pages en une seule liste de Pokémon
   const pokemons = data?.pages.flatMap(page => page.results) ?? [];
+  const filteredPokemons = search ? pokemons.filter(p => p.name.includes(search.toLocaleLowerCase()) || getPokemeonId(p.url).toString() === search) : pokemons;
 
   return (
     // SafeAreaView évite que le contenu passe sous la barre système
     <SafeAreaView style={[styles.container, { backgroundColor: colors.tint }]}>
 
       {/* Header de l'écran */}
-      <View style={styles.header}>
+      <Row style={styles.header} gap={16}>
 
         {/* Icône Pokéball */}
         <Image
@@ -37,7 +41,12 @@ const index = () => {
         <ThemedText variant="headline" color="grayLight">
           Pokédex
         </ThemedText>
-      </View>
+      </Row>
+
+      {/* Barre de recherche */}
+      <Row>
+        <SearchBar value={search} onChange={setSearch}/>
+      </Row>
 
       {/* Carte contenant la liste des Pokémon */}
       <Card style={styles.body}>
@@ -46,7 +55,7 @@ const index = () => {
         <FlatList
 
           // Données à afficher
-          data={pokemons}
+          data={filteredPokemons}
 
           // Affichage en grille de 3 colonnes
           numColumns={3}
@@ -63,7 +72,7 @@ const index = () => {
           }
 
           // Quand on arrive en bas de la liste → on charge la page suivante
-          onEndReached={() => fetchNextPage()}
+          onEndReached={search ? undefined : () => fetchNextPage()}
 
           // Comment afficher chaque Pokémon
           renderItem={({ item }) => (
@@ -98,15 +107,14 @@ const styles = StyleSheet.create({
 
   // Header contenant l'icône et le titre
   header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 16,
-    padding: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 16,
   },
 
   // Corps de la carte contenant la liste
   body: {
     flex: 1,
+    marginTop: 24
   },
 
   // Espacement dans la grille
