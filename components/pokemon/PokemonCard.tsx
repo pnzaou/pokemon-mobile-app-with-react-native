@@ -1,7 +1,8 @@
-import { View, Text, ViewStyle, Image, StyleSheet } from "react-native";
+import { View, Text, ViewStyle, Image, StyleSheet, Pressable } from "react-native";
 import Card from "@/components/Card";
 import ThemedText from "@/components/ThemedText";
 import { useThemeColors } from "@/hooks/useThemeColors";
+import { Link } from "expo-router";
 
 type props = {
   style: ViewStyle;
@@ -12,20 +13,26 @@ type props = {
 const PokemonCard = ({ style, id, name }: props) => {
   const colors = useThemeColors()
   return (
-    <Card style={[style, styles.card]}>
-      <View style={[styles.shadow, {backgroundColor: colors.grayBackground}]}/>
-      <ThemedText style={styles.id} variant="caption" color="grayMedium">
-        #{id.toString().padStart(3, "0")}
-      </ThemedText>
-      <Image
-        source={{
-          uri: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`,
-        }}
-        width={72}
-        height={72}
-      />
-      <ThemedText>{name}</ThemedText>
-    </Card>
+    <Link href={{ pathname: "/pokemon/[id]", params: { id: id } }} asChild>
+       <Pressable  style={style}> {/*android_ripple={{color: colors.tint, foreground: true}} */} on peut ajouter cette props pour avoir un effet quand on clique sur la zone préssable.
+        <Card style={[styles.card]}>
+          <View
+            style={[styles.shadow, { backgroundColor: colors.grayBackground }]}
+          />
+          <ThemedText style={styles.id} variant="caption" color="grayMedium">
+            #{id.toString().padStart(3, "0")}
+          </ThemedText>
+          <Image
+            source={{
+              uri: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`,
+            }}
+            width={72}
+            height={72}
+          />
+          <ThemedText>{name}</ThemedText>
+        </Card>
+      </Pressable>
+    </Link>
   );
 };
 
