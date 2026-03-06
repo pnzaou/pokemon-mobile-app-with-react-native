@@ -72,7 +72,7 @@ const index = () => {
           }
 
           // Quand on arrive en bas de la liste → on charge la page suivante
-          onEndReached={search ? undefined : () => fetchNextPage()}
+          onEndReached={(search ? undefined : () => fetchNextPage())}
 
           // Comment afficher chaque Pokémon
           renderItem={({ item }) => (
