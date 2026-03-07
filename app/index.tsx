@@ -3,6 +3,7 @@ import Card from "@/components/Card";
 import PokemonCard from "@/components/pokemon/PokemonCard";
 import Row from "@/components/Row";
 import SearchBar from "@/components/SearchBar";
+import SortButton from "@/components/SortButton";
 import ThemedText from "@/components/ThemedText";
 import { getPokemeonId } from "@/functions/pokemon";
 import { useInfiniteFetchQuery } from "@/hooks/useFetchQuery";
@@ -13,6 +14,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 const index = () => {
   const [search, setSearch] = useState('')
+  const [sortKey, setSortKey] = useState<"id" | "name">('id')
   const colors = useThemeColors();
 
   // Hook qui récupère les Pokémon avec React Query et gère la pagination
@@ -20,8 +22,8 @@ const index = () => {
 
   // Les données retournées sont paginées (data.pages)
   // On fusionne toutes les pages en une seule liste de Pokémon
-  const pokemons = data?.pages.flatMap(page => page.results) ?? [];
-  const filteredPokemons = search ? pokemons.filter(p => p.name.includes(search.toLocaleLowerCase()) || getPokemeonId(p.url).toString() === search) : pokemons;
+  const pokemons = data?.pages.flatMap(page => page.results).map(p => ({name: p.name, id: getPokemeonId(p.url)})) ?? [];
+  const filteredPokemons = [...(search ? pokemons.filter(p => p.name.includes(search.toLocaleLowerCase()) || p.id.toString() === search) : pokemons)].sort((a, b) => (a[sortKey] < b[sortKey] ? -1 : 1));
 
   return (
     // SafeAreaView évite que le contenu passe sous la barre système
@@ -44,8 +46,9 @@ const index = () => {
       </Row>
 
       {/* Barre de recherche */}
-      <Row>
+      <Row gap={16} style={styles.form}>
         <SearchBar value={search} onChange={setSearch}/>
+        <SortButton value={sortKey} onChange={setSortKey}/>
       </Row>
 
       {/* Carte contenant la liste des Pokémon */}
@@ -80,7 +83,7 @@ const index = () => {
               style={{ flex: 1 / 3, height: 200 }}
 
               // On extrait l'id du Pokémon depuis son URL
-              id={getPokemeonId(item.url)}
+              id={item.id}
 
               // Nom du Pokémon
               name={item.name}
@@ -88,7 +91,7 @@ const index = () => {
           )}
 
           // Clé unique pour chaque élément
-          keyExtractor={(item) => item.url}
+          keyExtractor={(item) => item.id.toString()}
         />
       </Card>
     </SafeAreaView>
@@ -126,6 +129,10 @@ const styles = StyleSheet.create({
   list: {
     padding: 12,
   },
+
+  form: {
+    paddingHorizontal: 12
+  }
 });
 
 
