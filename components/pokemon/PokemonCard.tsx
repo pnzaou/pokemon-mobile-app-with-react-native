@@ -10,6 +10,7 @@ import Card from "@/components/Card";
 import ThemedText from "@/components/ThemedText";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { Link } from "expo-router";
+import { getPokemonArtwork } from "@/functions/pokemon";
 
 type props = {
   style: ViewStyle;
@@ -32,7 +33,7 @@ const PokemonCard = ({ style, id, name }: props) => {
 
           <Image
             source={{
-              uri: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`,
+              uri: getPokemonArtwork(id),
             }}
             width={72}
             height={72}
