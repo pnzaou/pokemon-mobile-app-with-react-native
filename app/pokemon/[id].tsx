@@ -7,6 +7,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useFetchQuery } from "@/hooks/useFetchQuery";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useThemeColors } from "@/hooks/useThemeColors";
+import { useAudioPlayer } from "expo-audio"
 import { Colors } from "@/constants/Colors";
 import {
   formatSize,
@@ -26,12 +27,23 @@ const Pokemon = () => {
     id: params.id,
   });
 
+  const player = useAudioPlayer();
+
   const mainType = pokemon?.types?.[0].type.name;
   const colorType = mainType ? Colors.type[mainType] : colors.tint;
   const types = pokemon?.types ?? [];
   const bio = species?.flavor_text_entries
     ?.find(({ language }) => language.name === "en")
     ?.flavor_text.replaceAll("\n", ". ");
+
+  const onImagePress = () => {
+    const cry = pokemon?.cries.latest
+    if(!cry) {
+      return
+    }
+    player.replace(cry)
+    player.play()
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colorType }]}>
@@ -60,14 +72,19 @@ const Pokemon = () => {
           </ThemedText>
         </Row>
         <View style={styles.body}>
-          <Image
-            style={styles.artwork}
-            source={{
-              uri: getPokemonArtwork(params.id),
-            }}
-            width={200}
-            height={200}
-          />
+          <Row style={styles.imageRow}>
+            <Pressable onPress={onImagePress}>
+              <Image
+                style={styles.artwork}
+                source={{
+                  uri: getPokemonArtwork(params.id),
+                }}
+                width={200}
+                height={200}
+              />
+            </Pressable>
+          </Row>
+
           <Card style={styles.card}>
             <Row gap={16}>
               {types.map((type) => (
@@ -113,8 +130,15 @@ const Pokemon = () => {
               Base Stats
             </ThemedText>
 
-            <View style={{alignSelf: "stretch"}}>
-              {pokemon?.stats.map(stat => <PokemonStat key={stat.stat.name} name={stat.stat.name} value={stat.base_stat} color={colorType}/> )}
+            <View style={{ alignSelf: "stretch" }}>
+              {pokemon?.stats.map((stat) => (
+                <PokemonStat
+                  key={stat.stat.name}
+                  name={stat.stat.name}
+                  value={stat.base_stat}
+                  color={colorType}
+                />
+              ))}
             </View>
           </Card>
         </View>
@@ -136,17 +160,18 @@ const styles = StyleSheet.create({
     top: 8,
   },
 
+  imageRow: {
+    position: "absolute",
+    top: -140,
+    zIndex: 2,
+  },
+
   header: {
     margin: 20,
     justifyContent: "space-between",
   },
 
-  artwork: {
-    position: "absolute",
-    top: -140,
-    alignSelf: "center",
-    zIndex: 2,
-  },
+  artwork: {},
 
   body: {
     marginTop: 144,
